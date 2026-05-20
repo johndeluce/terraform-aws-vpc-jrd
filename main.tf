@@ -91,14 +91,6 @@ resource "aws_route_table" "public" {
   })
 }
 
-# Associate public subnets with the public route table
-resource "aws_route_table_association" "public" {
-  count = length(aws_subnet.public)
-
-  subnet_id      = aws_subnet.public[count.index].id
-  route_table_id = aws_route_table.public.id
-}
-
 # Private route tables (one per NAT, or one shared if single_nat_gateway)
 resource "aws_route_table" "private" {
   count  = local.nat_gateway_count
@@ -113,13 +105,4 @@ resource "aws_route_table" "private" {
     Name = "${var.vpc_name}-private-rt-${count.index}"
     Role = "private"
   })
-}
-
-# Associate private subnets with private route tables
-resource "aws_route_table_association" "private" {
-  count = length(aws_subnet.private)
-
-  subnet_id      = aws_subnet.private[count.index].id
-  # If single NAT, all private subnets use route table 0; otherwise one each
-  route_table_id = aws_route_table.private[var.single_nat_gateway ? 0 : count.index].id
 }
